@@ -1,10 +1,8 @@
 <?php
 
-/*!
+/**
  * PHP Shunting-yard Implementation
  * Copyright 2012 - droptable <murdoc@raidrush.org>
- *
- * PHP 5.4 required
  *
  * Reference: <http://en.wikipedia.org/wiki/Shunting-yard_algorithm>
  *
