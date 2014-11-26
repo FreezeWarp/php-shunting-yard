@@ -60,8 +60,14 @@ echo $result; // 4
 
 ### Authors
 
-Originally source code taken from https://github.com/droptable/php-shunting-yard, some changes from https://github.com/andig/php-shunting-yard, https://github.com/pmishev/php-shunting-yard and https://github.com/falahati/php-shunting-yard. 
+Originally source code taken from https://github.com/droptable/php-shunting-yard, some changes from:
+
+  - https://github.com/andig/php-shunting-yard
+  - https://github.com/pmishev/php-shunting-yard 
+  - https://github.com/falahati/php-shunting-yard
+
 Test cases and refactoring for composer/packagist by https://github.com/sergej-kurakin/php-shunting-yard.
+
 
 ### Installation Via Composer
 
@@ -70,7 +76,7 @@ Define the following requirement in your composer.json file:
 ```json
 {
     "require": {
-        "falahati/php-shunting-yard": "dev-master"
+        "andig/php-shunting-yard": "dev-master"
     }
 }
 ```
