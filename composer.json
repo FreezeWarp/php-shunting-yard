@@ -1,5 +1,5 @@
 {
-    "name": "andig/php-shunting-yard",
+    "name": "freezewarp/php-shunting-yard",
     "type": "library",
     "keywords": ["math","shunting yard", "equation"],
     "homepage": "https://github.com/andig/php-shunting-yard",
