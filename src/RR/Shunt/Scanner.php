@@ -37,7 +37,7 @@ use RR\Shunt\Exception\SyntaxError;
 class Scanner
 {
     //              operator_________________________________|number_______________|word____________________|space_
-    const PATTERN = '/^([<>]=|<>|><|[!,><=&\|\+\-\*\/\^%\(\)]|\d*\.\d+|\d+\.\d*|\d+|[a-z_A-Zπ]+[a-z_A-Z0-9]*|[ \t]+)/';
+    const PATTERN = '/^([<>]=|<>|><|[!,><=&\|\+\-\*\/\^%\(\)]|\d*\.\d+|\d+\.\d*|\d+|[a-z_A-Zπ]+[a-z_A-Z0-9]*|\s+)/';
 
     const ERR_EMPTY = 'nothing found! (endless loop) near: `%s`';
     const ERR_MATCH = 'syntax error near `%s`';
