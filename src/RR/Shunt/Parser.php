@@ -225,8 +225,10 @@ class Parser
                 case Token::T_OR:
                 case Token::T_XOR:
                     if (!is_bool($lhs) || !is_bool($rhs)) {
-                        throw new RuntimeError('run-time error: trying to do a boolean only operation over two numbers');
-                    }
+                        //throw new RuntimeError('run-time error: trying to do a boolean only operation over two numbers');
+		        $lhs = (bool)$lhs;
+			$rhs = (bool)$rhs;
+		    }
                     break;
             }
 
