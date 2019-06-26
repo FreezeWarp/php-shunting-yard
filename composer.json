@@ -3,7 +3,7 @@
     "type": "library",
     "keywords": ["math","shunting yard", "equation"],
     "homepage": "https://github.com/FreezeWarp/php-shunting-yard",
-    "description": "Flexible shunting yard parse, based on https://github.com/andig/php-shunting-yard",
+    "description": "Flexible shunting yard parser, based on https://github.com/andig/php-shunting-yard",
     "license": "MIT",
     "autoload": {
         "psr-0": {
