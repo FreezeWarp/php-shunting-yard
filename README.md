@@ -10,7 +10,7 @@ To this end, the following changes are made:
     * String literals are supported -- either as `"string"` or `'string'`. (Escaping is not supported.)
     
   * Variable names have been expanded:
-    * Now, any string matching `/\p{L}\p{N}]+/` (that is, containing only unicode letters and numbers) will be treated as a variable name. This means that `littérature + 手紙` is a valid formula that is adding two variables.
+    * Now, any string matching `/\p{L}\p{N}\.]+/` (that is, containing only unicode letters, numbers, and the symbol `.`) will be treated as a variable name. This means that `littérature + 手紙` is a valid formula that is adding two variables.
     * A special syntax, `${xyz}` is allotted for more complex variable references -- this supports any character in the variable name other than `}`.
     * Unregistered variables evaluate to 0 instead of causing an exception. A strict mode flag on Context can re-enable the old behaviour.
     

@@ -144,12 +144,12 @@ class ConstantsParserTest extends \PHPUnit\Framework\TestCase
                 (-1),
             ),
             array(
-                '${a}-${b}',
+                '${a}-b.c',
                 array(
                     'a' => "4",
-                    'b' => "3",
+                    'b.c' => "7",
                 ),
-                (4-3),
+                (4-7),
             ),
             array( // arguably invalid
                 '${a} ${b}',
@@ -160,18 +160,18 @@ class ConstantsParserTest extends \PHPUnit\Framework\TestCase
                 7,
             ),
             array( // should maybe include some extra space?
-                '${a} ${b}',
+                '${a} ${b.c}',
                 array(
                     'a' => "hello",
-                    'b' => "my honey",
+                    'b.c' => "my honey",
                 ),
                 "hellomy honey",
             ),
             array( // should maybe include some extra space?
-                '${a} || " " || ${b}',
+                '${a} || " " || b.c',
                 array(
                     'a' => "hello",
-                    'b' => "my honey",
+                    'b.c' => "my honey",
                 ),
                 "hello my honey",
             ),
