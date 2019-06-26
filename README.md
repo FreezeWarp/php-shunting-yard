@@ -1,5 +1,39 @@
 ## PHP Shunting Yard Implementation
 
+### Fork Changes
+The general goal of this fork is to take the existing framework for safe formula evaluation and add the needed functionality for more general inputs (whereas the original is fairly heavily focused on numbers alone).
+
+To this end, the following changes are made:
+  * Constants can be any PHP value, not just numeric values. (Internally, they are represented as `T_NATIVE`, and subsume `T_NULL`.)
+    * The `||` operator was added for concatenation. (This operator is given precedence above equality but below addition and subtraction. Thus, `2 + 3 || 3 + 4 = "57"`.)
+    * The `+` operator acts as concatenation if either side is non-numeric. (Thus, `"2" + "3" = 5`, but `"2 " + "3" = "2 3"`)
+    * String literals are supported -- either as `"string"` or `'string'`. (Escaping is not supported.)
+    
+  * Variable names have been expanded:
+    * Now, any string matching `/\p{L}\p{N}]+/` (that is, containing only unicode letters and numbers) will be treated as a variable name. This means that `littérature + 手紙` is a valid formula that is adding two variables.
+    * A special syntax, `${xyz}` is allotted for more complex variable references -- this supports any character in the variable name other than `}`.
+    * Unregistered variables evaluate to 0 instead of causing an exception. A strict mode flag on Context can re-enable the old behaviour.
+    
+  * A handful of more opinionated changes were made to make the overall syntax more user-friendly:
+    * No default constants are set. At construction time, an array can be passed to set all constants at once.
+    * `and`, `or`, and `not` are now synonyms for `&`, `|`, and `!` respectively.
+    * `if`, `coalesce`, `min`, and `max` functions are registered by default.
+    * The xor operator was removed to avoid possible confusion (it was `><`).
+
+Unit tests have been written for all of these changes. All existing and new tests pass.
+
+Finally, while not included, I personally recommend using this package by overloading the Context like so:
+```
+new class($array) extends Context
+{
+    public function cs($name) {
+        return your_array_getter($this->constants, $name);
+    }
+}
+```
+
+While the default class only performs normal array lookups, there are many opportunities for more advanced array lookups. Laravel's array_get provides basic dot lookups, or https://github.com/Galbar/JsonPath-PHP could be used for full JSONPath lookups.
+
 ### Example
 
 Simple equation parsing
@@ -72,11 +106,10 @@ Define the following requirement in your composer.json file:
 
 ### Authors
 
-Originally source code taken from https://github.com/droptable/php-shunting-yard, some changes from:
+This is a fork of https://github.com/andig/php-shunting-yard, which in turn used code from:
 
+  - https://github.com/droptable/php-shunting-yard
   - https://github.com/andig/php-shunting-yard
   - https://github.com/pmishev/php-shunting-yard
   - https://github.com/falahati/php-shunting-yard
-
-Test cases and refactoring for composer/packagist by https://github.com/sergej-kurakin/php-shunting-yard.
-
+  - https://github.com/sergej-kurakin/php-shunting-yard

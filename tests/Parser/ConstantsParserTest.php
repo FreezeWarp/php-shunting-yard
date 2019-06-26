@@ -11,7 +11,7 @@ class ConstantsParserTest extends \PHPUnit\Framework\TestCase
     /**
      * @param $equation
      * @param array $constants
-     *                         @param $expected
+     * @param $expected
      *
      * @dataProvider equationAndConstantsProvider
      */
@@ -104,6 +104,143 @@ class ConstantsParserTest extends \PHPUnit\Framework\TestCase
                     'c' => -2,
                 ),
                 0.125
+            ),
+        );
+    }
+
+
+    /**
+     * @param $equation
+     * @param array $constants
+     * @param $expected
+     *
+     * @dataProvider equationAndConstantsForkedProvider
+     */
+    public function testForkedParserWithConstants($equation, array $constants, $expected)
+    {
+        $context = new Context($constants);
+
+        $actual = Parser::parse($equation, $context);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function equationAndConstantsForkedProvider()
+    {
+        return array(
+            array(
+                'a+${b}',
+                array(
+                    'a' => "4",
+                    'b' => "3",
+                ),
+                (4+3),
+            ),
+            array(
+                '-${a}',
+                array(
+                    'a' => "1",
+                ),
+                (-1),
+            ),
+            array(
+                '${a}-${b}',
+                array(
+                    'a' => "4",
+                    'b' => "3",
+                ),
+                (4-3),
+            ),
+            array( // arguably invalid
+                '${a} ${b}',
+                array(
+                    'a' => 4,
+                    'b' => 3,
+                ),
+                7,
+            ),
+            array( // should maybe include some extra space?
+                '${a} ${b}',
+                array(
+                    'a' => "hello",
+                    'b' => "my honey",
+                ),
+                "hellomy honey",
+            ),
+            array( // should maybe include some extra space?
+                '${a} || " " || ${b}',
+                array(
+                    'a' => "hello",
+                    'b' => "my honey",
+                ),
+                "hello my honey",
+            ),
+            array(
+                'if(${a}, ${b}, ${c})',
+                array(
+                    'a' => true,
+                    'b' => 100,
+                    'c' => 1000,
+                ),
+                100,
+            ),
+            array(
+                'if(${a}, ${b}, ${c})',
+                array(
+                    'a' => 0,
+                    'b' => 100,
+                    'c' => 1000,
+                ),
+                1000,
+            ),
+            array(
+                'coalesce(${a}, ${b}, ${c})',
+                array(
+                    'a' => 0,
+                    'b' => 100,
+                    'c' => 1000,
+                ),
+                100,
+            ),
+            array(
+                'coalesce(${a}, ${c}, ${b})',
+                array(
+                    'a' => 0,
+                    'b' => 100,
+                    'c' => 1000,
+                ),
+                1000,
+            ),
+            array(
+                '${hello my honey}*${hello my darling!}',
+                array(
+                    'hello my honey' => 4,
+                    'hello my darling!' => 3,
+                ),
+                12,
+            ),
+            array(
+                '手紙+${123}',
+                array(
+                    '手紙' => 3,
+                    '123' => 4,
+                ),
+                (3+4),
+            ),
+            array(
+                '(手紙)(${la littérature})',
+                array(
+                    '手紙' => 3,
+                    'la littérature' => 4,
+                ),
+                12,
+            ),
+            array(
+                '手紙+${howdy}',
+                array(
+                    '手紙' => 7
+                ),
+                7,
             ),
         );
     }

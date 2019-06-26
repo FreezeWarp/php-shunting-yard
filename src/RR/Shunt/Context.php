@@ -38,8 +38,45 @@ use RR\Shunt\Exception\RuntimeError;
 class Context
 {
     protected $functions = array();
-    protected $constants = array('PI' => M_PI, 'π' => M_PI);
+    protected $constants = array();
     protected $operatorHandlers = array();
+    protected $strict_mode = false;
+
+
+    /**
+     * Define several default functions.
+     *
+     * @param $constants array The constants to use for evaluating variables.
+     */
+    public function __construct($constants = array())
+    {
+
+        $this->constants = $constants;
+
+        $this->def('if', function($if, $then, $else = 0) {
+            return $if ? $then : $else;
+        });
+
+        $this->def('coalesce', function(... $n) {
+            return array_values(array_filter($n))[0];
+        });
+
+        $this->def('min');
+        $this->def('max');
+
+    }
+
+
+    /**
+     * Turn on or off strict mode, which causes unregistered variables to throw exceptions.
+     * (Unregistered functions will always trigger an exception.)
+     *
+     * @param $strict_mode
+     */
+    public function setStrictMode($strict_mode) {
+        $this->strict_mode = $strict_mode;
+    }
+
 
     /**
      * Call a user-defined custom function and returns the result
@@ -67,11 +104,11 @@ class Context
      */
     public function cs($name)
     {
-        if (!isset($this->constants[$name])) {
+        if ($this->strict_mode && !isset($this->constants[$name])) {
             throw new RuntimeError('run-time error: undefined constant "' . $name . '"');
         }
 
-        return $this->constants[$name];
+        return $this->constants[$name] ?? 0;
     }
 
     /**
@@ -98,21 +135,17 @@ class Context
      * @param string $type
      * @throws \Exception
      */
-    public function def($name, $value = null, $type = 'float')
+    public function def($name, $value = null)
     {
         // wrapper for simple PHP functions
         if ($value === null) {
             $value = $name;
         }
 
-        if (is_callable($value) && $type == 'float') {
+        if (is_callable($value)) {
             $this->functions[$name] = $value;
-        } elseif (is_numeric($value) && $type == 'float') {
-            $this->constants[$name] = (float) $value;
-        } elseif (is_string($value) && $type == 'string') {
-            $this->constants[$name] = $value;
         } else {
-            throw new Exception('function or number expected');
+            $this->constants[$name] = $value;
         }
     }
 

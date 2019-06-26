@@ -90,16 +90,12 @@ class Parser
         while ($t = array_shift($this->queue)) {
             switch ($t->type) {
                 case Token::T_NUMBER:
-                case Token::T_NULL:
                 case Token::T_IDENT:
+                case Token::T_NATIVE:
                     // determine constant value
                     if ($t->type === Token::T_IDENT) {
                         $value = $ctx->cs($t->value);
-                        if ($value === 'null') {
-                            $t = new Token(Token::T_NULL, null);
-                        } else {
-                            $t = new Token(Token::T_NUMBER, $value);
-                        }
+                        $t = Token::auto($value);
                     }
 
                     // If the token is a value, null or identifier
@@ -108,6 +104,7 @@ class Parser
                     ++$len;
                     break;
 
+                case Token::T_CONCAT:
                 case Token::T_AND:
                 case Token::T_OR:
                 case Token::T_XOR:
@@ -148,7 +145,7 @@ class Parser
 
                     // Push the returned results, if any, back onto the stack.
                     $operationResult = $this->op($t->type, $lhs, $rhs, $ctx);
-                    $this->stack[] = new Token(is_null($operationResult) ? Token::T_NULL : Token::T_NUMBER, $operationResult);
+                    $this->stack[] = Token::auto($operationResult);
                     break;
 
                 case Token::T_FUNCTION:
@@ -163,7 +160,7 @@ class Parser
                     }
 
                     // Push the returned results, if any, back onto the stack.
-                    $this->stack[] = new Token(Token::T_NUMBER, $ctx->fn($t->value, $argv));
+                    $this->stack[] = Token::auto($ctx->fn($t->value, $argv));
                     break;
 
                 default:
@@ -182,6 +179,7 @@ class Parser
 
         // If there are more values in the stack
         // (Error) The user input has too many values.
+        var_dump($this->stack);
         throw new RuntimeError('run-time error: too many values in the stack');
     }
 
@@ -203,32 +201,14 @@ class Parser
                 case Token::T_LESS_EQUAL:
                 case Token::T_GREATER:
                 case Token::T_LESS:
-                case Token::T_PLUS:
                 case Token::T_MINUS:
                 case Token::T_TIMES:
                 case Token::T_DIV:
                 case Token::T_MOD:
                 case Token::T_POW:
-                    if (is_bool($lhs) && is_bool($rhs)) {
-                        throw new RuntimeError('run-time error: trying to do a number only operation over two booleans');
-                    } elseif (is_bool($lhs) || is_bool($rhs)) {
-                        throw new RuntimeError('run-time error: trying to calculate a value out of a decimal and a boolean');
+                    if (!is_numeric($lhs) || !is_numeric($rhs)) {
+                        throw new RuntimeError('run-time error: trying to do a number only operation over non-numbers');
                     }
-                    break;
-                case Token::T_EQUAL:
-                case Token::T_NOT_EQUAL:
-                    if (is_bool($lhs) ^ is_bool($rhs)) {
-                        throw new RuntimeError('run-time error: trying to calculate a value out of a decimal and a boolean');
-                    }
-                    break;
-                case Token::T_AND:
-                case Token::T_OR:
-                case Token::T_XOR:
-                    if (!is_bool($lhs) || !is_bool($rhs)) {
-                        //throw new RuntimeError('run-time error: trying to do a boolean only operation over two numbers');
-		        $lhs = (bool)$lhs;
-			$rhs = (bool)$rhs;
-		    }
                     break;
             }
 
@@ -261,7 +241,14 @@ class Parser
                     return $lhs != $rhs;
 
                 case Token::T_PLUS:
+                    if (!is_numeric($lhs) || !is_numeric($rhs)) {
+                        return $lhs . $rhs;
+                    }
+
                     return $lhs + $rhs;
+
+                case Token::T_CONCAT:
+                    return $lhs . $rhs;
 
                 case Token::T_MINUS:
                     return $lhs - $rhs;
@@ -288,6 +275,7 @@ class Parser
             }
 
             // throw?
+            throw new RuntimeError('run-time error: invalid operator');
             return 0;
         }
 
@@ -322,6 +310,7 @@ class Parser
             case Token::T_DIV:
             case Token::T_MOD:
             case Token::T_POW:
+            case Token::T_CONCAT:
                 return 2;
         }
 
@@ -385,7 +374,7 @@ class Parser
     {
         switch ($t->type) {
             case Token::T_NUMBER:
-            case Token::T_NULL:
+            case Token::T_NATIVE:
             case Token::T_IDENT:
                 // If the token is a number, NULL or identifier, then add it to the output queue.
                 $this->queue[] = $t;
@@ -423,6 +412,7 @@ class Parser
                 break;
 
             // If the token is an operator, op1, then:
+            case Token::T_CONCAT:
             case Token::T_AND:
             case Token::T_OR:
             case Token::T_XOR:
@@ -455,6 +445,7 @@ class Parser
                         default:
                             break 2;
 
+                        case Token::T_CONCAT:
                         case Token::T_AND:
                         case Token::T_OR:
                         case Token::T_XOR:
@@ -550,6 +541,8 @@ class Parser
 
             case Token::T_PLUS:
             case Token::T_MINUS:
+
+            case Token::T_CONCAT:
                 return 1; //ltr
 
             case Token::T_NOT:
@@ -588,6 +581,7 @@ class Parser
             case Token::T_LESS_EQUAL:
             case Token::T_GREATER:
             case Token::T_LESS:
+            case Token::T_CONCAT:
                 return 5;
 
             case Token::T_EQUAL:

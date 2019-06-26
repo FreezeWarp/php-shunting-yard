@@ -36,6 +36,7 @@ class Token
 {
     const T_NUMBER          = 1,  // a number (integer / double)
           T_IDENT           = 2,  // constant
+          T_NATIVE          = 3,  // a string
           T_FUNCTION        = 4,  // function
           T_POPEN           = 8,  // (
           T_PCLOSE          = 16, // )
@@ -59,7 +60,8 @@ class Token
           T_NOT_EQUAL       = 8192, // <>
           T_AND             = 16384, // &
           T_OR              = 32768, // |
-          T_XOR             = 65536; // ><
+          T_XOR             = 65536, // ><
+          T_CONCAT          = 131072; // ||
 
     public $type;
     public $value;
@@ -69,5 +71,14 @@ class Token
     {
         $this->type  = $type;
         $this->value = $value;
+    }
+
+    public static function auto($value)
+    {
+        if (is_numeric($value)) {
+            return new self(self::T_NUMBER, $value);
+        } else {
+            return new self(self::T_NATIVE, $value);
+        }
     }
 }

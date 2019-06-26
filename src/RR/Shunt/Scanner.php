@@ -36,8 +36,8 @@ use RR\Shunt\Exception\SyntaxError;
 
 class Scanner
 {
-    //              operator_________________________________|number_______________|word____________________|space_
-    const PATTERN = '/^([<>]=|<>|><|[!,><=&\|\+\-\*\/\^%\(\)]|\d*\.\d+|\d+\.\d*|\d+|[a-z_A-Zπ]+[a-z_A-Z0-9]*|\s+)/';
+    //              operator___________________________________|number_______________|word______________________|string____________|space_
+    const PATTERN = '/^([<>]=|<>|\|\||[!,><=&\|\+\-\*\/\^%\(\)]|\d*\.\d+|\d+\.\d*|\d+|[\p{L}\p{N}]+|\$\{[^\}]+\}|"[^"]+"|\'[^\']+\'|\s+)/u';
 
     const ERR_EMPTY = 'nothing found! (endless loop) near: `%s`';
     const ERR_MATCH = 'syntax error near `%s`';
@@ -48,12 +48,13 @@ class Scanner
         '>=' => Token::T_GREATER_EQUAL,
         '<=' => Token::T_LESS_EQUAL,
         '<>' => Token::T_NOT_EQUAL,
-        '><' => Token::T_XOR,
         '>' =>	Token::T_GREATER,
         '<' =>	Token::T_LESS,
         '=' =>	Token::T_EQUAL,
         '&' =>	Token::T_AND,
+        'and' => Token::T_AND,
         '|' =>	Token::T_OR,
+        'or' => Token::T_OR,
 
         '+' => Token::T_PLUS,
         '-' => Token::T_MINUS,
@@ -64,11 +65,15 @@ class Scanner
         '(' => Token::T_POPEN,
         ')' => Token::T_PCLOSE,
         '!' => Token::T_NOT,
-        ',' => Token::T_COMMA
+        'not' => Token::T_NOT,
+        ',' => Token::T_COMMA,
+
+        '||' =>	Token::T_CONCAT,
     );
 
     public function __construct($input)
     {
+
         $prev = new Token(Token::T_OPERATOR, 'noop');
 
         while (trim($input) !== '') {
@@ -83,6 +88,7 @@ class Scanner
             }
 
             // Remove the first matched token from the input, for the next iteration
+
             $input = substr($input, strlen($match[1]));
 
             // Get the value of the matched token
@@ -93,8 +99,9 @@ class Scanner
                 continue;
             }
 
-            if (is_numeric($value)) {
-                if ($prev->type === Token::T_PCLOSE) {
+            // Numeric values are automatically treated as such.
+            else if (is_numeric($value)) {
+                if ($prev->type === Token::T_PCLOSE) { // Support the form (n)(m) or n(m), e.g. (2)(3) or 2(3)
                     $this->tokens[] = new Token(Token::T_TIMES, '*');
                 }
 
@@ -102,44 +109,77 @@ class Scanner
                 continue;
             }
 
-            // Unless token is one of the predefined symbols, consider it an identifier token
-            $tokenType = isset($this->lookup[$value]) ? $this->lookup[$value] : Token::T_IDENT;
-
-            switch ($tokenType) {
-                case Token::T_PLUS:
-                    if ($prev->type & Token::T_OPERATOR || $prev->type == Token::T_POPEN || $prev->type == Token::T_COMMA) {
-                        $tokenType = Token::T_UNARY_PLUS;
-                    }
-                    break;
-
-                case Token::T_MINUS:
-                    if ($prev->type & Token::T_OPERATOR || $prev->type == Token::T_POPEN || $prev->type == Token::T_COMMA) {
-                        $tokenType = Token::T_UNARY_MINUS;
-                    }
-                    break;
-
-                case Token::T_POPEN:
-                    switch ($prev->type) {
-                        case Token::T_IDENT:
-                            $prev->type = Token::T_FUNCTION;
-                            break;
-
-                        case Token::T_NUMBER:
-                        case Token::T_PCLOSE:
-                            // allowed 2(2) -> 2 * 2 | (2)(2) -> 2 * 2
-                            $this->tokens[] = new Token(Token::T_TIMES, '*');
-                            break;
-                    }
-                    break;
-
-                case Token::T_IDENT:
-                    if (strcasecmp($value, 'null') == 0) {
-                        $tokenType = Token::T_NULL;
-                        $value = null;
-                    }
+            // Strings are automatically treated as such (escaping is not currently possible)
+            else if ($value[0] === '"' || $value[0] === "'") {
+                $this->tokens[] = $prev = new Token(Token::T_NATIVE, substr($value, 1, -1));
+                continue;
             }
 
-            $this->tokens[] = $prev = new Token($tokenType, $value);
+            else {
+
+                // Unless token is one of the predefined symbols, consider it an identifier token
+                $tokenType = isset($this->lookup[$value]) ? $this->lookup[$value] : Token::T_IDENT;
+
+                switch ($tokenType) {
+                    case Token::T_PLUS:
+                        if ($prev->type & Token::T_OPERATOR || $prev->type == Token::T_POPEN || $prev->type == Token::T_COMMA) {
+                            $tokenType = Token::T_UNARY_PLUS;
+                        }
+                        break;
+
+                    case Token::T_MINUS:
+                        if ($prev->type & Token::T_OPERATOR || $prev->type == Token::T_POPEN || $prev->type == Token::T_COMMA) {
+                            $tokenType = Token::T_UNARY_MINUS;
+                        }
+                        break;
+
+                    case Token::T_POPEN:
+                        switch ($prev->type) {
+                            case Token::T_IDENT:
+                                $prev->type = Token::T_FUNCTION; // An identify followed by an opening paren becomes a function call, e.g. a(b) becomes the function a with the input b
+                                break;
+
+                            case Token::T_NUMBER:
+                            case Token::T_PCLOSE:
+                                // allowed 2(2) -> 2 * 2 | (2)(2) -> 2 * 2
+                                $this->tokens[] = new Token(Token::T_TIMES, '*');
+                                break;
+                        }
+                        break;
+
+                    case Token::T_IDENT:
+                        if (strtolower($value) === 'null') {
+                            $tokenType = Token::T_NATIVE;
+                            $value = null;
+                        }
+
+                        else if (strtolower($value) === 'true') {
+                            $tokenType = Token::T_NATIVE;
+                            $value = true;
+                        }
+
+                        else if (strtolower($value) === 'false') {
+                            $tokenType = Token::T_NATIVE;
+                            $value = false;
+                        }
+
+                        else if ($value[0] === '$' && $value[1] === '{') { // Explicit variable names possible in the format ${xyz}
+                            $value = substr($value, 2, -1);
+                        }
+
+
+                        // Two identity tokens next to each other will be concatenated.
+                        if (
+                            $tokenType === Token::T_IDENT
+                            && $prev->type === Token::T_IDENT
+                        ) {
+                            $this->tokens[] = new Token(Token::T_PLUS, '+');
+                        }
+                }
+
+                $this->tokens[] = $prev = new Token($tokenType, $value);
+
+            }
         }
     }
 

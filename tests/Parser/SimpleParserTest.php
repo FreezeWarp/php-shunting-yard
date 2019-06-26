@@ -69,6 +69,133 @@ class SimpleParserTest extends \PHPUnit\Framework\TestCase
         );
     }
 
+    /**
+     * @param $equation
+     * @param $expected
+     *
+     * @dataProvider simpleForkedEquations
+     */
+    public function testForkModifications($equation, $expected)
+    {
+        $actual = Parser::parse($equation);
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function simpleForkedEquations()
+    {
+        return array(
+            array(
+                '"2"+"3"',
+                "5",
+            ),
+            array(
+                '2 || 3',
+                "23",
+            ),
+            array(
+                '"2"+3',
+                "5",
+            ),
+            array(
+                '"2 "+3',
+                "2 3",
+            ),
+            array(
+                '"2" || 3',
+                "23",
+            ),
+            array(
+                '2 + 3 || 3 + 4',
+                "57",
+            ),
+            array(
+                '2 + 3 || 3 + 4 = "57"',
+                true,
+            ),
+            array(
+                '"2a"+"3"',
+                "2a3",
+            ),
+            array(
+                '"2a"+3',
+                "2a3",
+            ),
+            array(
+                '"hello" + "my honey"',
+                "hellomy honey",
+            ),
+            array(
+                '"2" + "my honey"',
+                "2my honey",
+            ),
+            array(
+                '${2}+3',
+                3,
+            ),
+            array(
+                'min(1,2)',
+                1,
+            ),
+            array(
+                'min(1,2,3,-1)',
+                -1,
+            ),
+            array(
+                'max(1,2,3)',
+                3,
+            ),
+            array(
+                'if(-1+1,3,4)',
+                4,
+            ),
+            array(
+                'if(-1+2,3,4)',
+                3,
+            ),
+            array(
+                'if(true,1)',
+                1,
+            ),
+            array(
+                'if(false,1)',
+                0,
+            ),
+            array(
+                'false',
+                false,
+            ),
+            array(
+                'not false',
+                true,
+            ),
+            array(
+                'true',
+                true,
+            ),
+            array(
+                'not true',
+                false,
+            ),
+            array(
+                'null',
+                null,
+            ),
+            array(
+                'true and false',
+                false,
+            ),
+            array(
+                'true or false',
+                true,
+            ),
+            array(
+                'true and not false',
+                true,
+            ),
+        );
+    }
+
     public function testDivisionFromZero()
     {
         $this->expectException(\RR\Shunt\Exception\RuntimeError::class);
