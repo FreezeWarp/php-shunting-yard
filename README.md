@@ -99,7 +99,7 @@ Define the following requirement in your composer.json file:
 ```json
 {
     "require": {
-        "andig/php-shunting-yard": "dev-master"
+        "freezewarp/php-shunting-yard": "dev-master"
     }
 }
 ```
