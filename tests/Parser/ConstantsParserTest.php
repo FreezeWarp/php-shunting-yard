@@ -242,6 +242,33 @@ class ConstantsParserTest extends \PHPUnit\Framework\TestCase
                 ),
                 7,
             ),
+            array(
+                'if(a, b, c)',
+                array(
+                    'a' => false,
+                    'b' => "hello",
+                    'c' => "goodbye"
+                ),
+                "goodbye",
+            ),
+            array(
+                'if(a, b, c)',
+                array(
+                    'a' => "true",
+                    'b' => "hello",
+                    'c' => "goodbye"
+                ),
+                "hello",
+            ),
+            array(
+                'if(a, b, c)',
+                array(
+                    'a' => [],
+                    'b' => ['a', 'b'],
+                    'c' => ['a', 'c']
+                ),
+                ['a', 'c'],
+            ),
         );
     }
 

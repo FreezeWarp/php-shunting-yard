@@ -92,7 +92,7 @@ class Context
             throw new RuntimeError('run-time error: undefined function "' . $name . '"');
         }
 
-        return (float) call_user_func_array($this->functions[$name], $args);
+        return call_user_func_array($this->functions[$name], $args);
     }
 
     /**
