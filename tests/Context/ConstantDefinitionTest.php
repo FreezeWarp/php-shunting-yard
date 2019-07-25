@@ -56,14 +56,6 @@ class ConstantDefinitionTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    public function testNonNumericConstantDefinitionException()
-    {
-        $this->expectException(\Exception::class);
-
-        $context = new Context();
-        $context->def('const', 'Just a String That Causes Error #$#$%#@');
-    }
-
     public function testNonNumericConstantDefinition()
     {
         $context = new Context();
@@ -77,6 +69,7 @@ class ConstantDefinitionTest extends \PHPUnit\Framework\TestCase
         $this->expectException(\RR\Shunt\Exception\RuntimeError::class);
 
         $context = new Context();
+        $context->setStrictMode(true);
         $context->cs('notdefinedfunction');
     }
 }

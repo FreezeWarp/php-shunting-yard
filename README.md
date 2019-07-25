@@ -5,10 +5,17 @@ The general goal of this fork is to take the existing framework for safe formula
 
 To this end, the following changes are made:
   * Constants can be any PHP value, not just numeric values. (Internally, they are represented as `T_NATIVE`, and subsume `T_NULL`.)
+  
+  * Support for string literals has been added.
     * The `||` operator was added for concatenation. (This operator is given precedence above equality but below addition and subtraction. Thus, `2 + 3 || 3 + 4 = "57"`.)
     * The `+` operator acts as concatenation if either side is non-numeric. (Thus, `"2" + "3" = 5`, but `"2 " + "3" = "2 3"`)
     * String literals are supported -- either as `"string"` or `'string'`. (Escaping is not supported.)
     
+  * Support for array literals has been added.
+    * The `||` operator will perform array merging if either operand is an array.
+    * Both lists and associative arrays are implemented. Lists use the syntax `[1, 2, 3]`, while associative arrays use the syntax `[1 -> 2, 3 -> 4, 5 -> 6]`.
+    * Array keys and values support all operations otherwise supported by shunting expressions -- for instance, `[1 + 2 -> 3 + 4, 5 + 6 -> 7 + 8]` is equivalent to `[3 -> 7, 11 -> 15]`
+
   * Variable names have been expanded:
     * Now, any string matching `/\p{L}\p{N}\.]+/` (that is, containing only unicode letters, numbers, and the symbol `.`) will be treated as a variable name. This means that `littérature + 手紙` is a valid formula that is adding two variables.
     * A special syntax, `${xyz}` is allotted for more complex variable references -- this supports any character in the variable name other than `}`.

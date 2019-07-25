@@ -32,15 +32,6 @@ class FunctionDefinitionTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(3.0, $actual);
     }
 
-    public function testNonCallableFunctionDefinition()
-    {
-        $this->expectException(\Exception::class);
-
-        $context = new Context();
-
-        $context->def('abs', 'Just a String That Causes Error #$#$%#@');
-    }
-
     public function testCallNotsetFunctionCausesException()
     {
         $this->expectException(\RR\Shunt\Exception\RuntimeError::class);

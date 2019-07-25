@@ -36,8 +36,18 @@ use RR\Shunt\Exception\SyntaxError;
 
 class Scanner
 {
-    //              operator___________________________________|number_______________|word_________________)_______|string____________|space_
-    const PATTERN = '/^([<>]=|<>|\|\||[!,><=&\|\+\-\*\/\^%\(\)]|\d*\.\d+|\d+\.\d*|\d+|[\p{L}\p{N}\._]+|\$\{[^\}]+\}|"[^"]+"|\'[^\']+\'|\s+)/u';
+
+    const PATTERN = '/^('
+        . '[<>]=|<>|-\>|\|\||[!,><=&\|\+\-\*\/\^%\(\)\[\]]' // operator
+        . '|'
+        . '\d*\.\d+|\d+\.\d*|\d+' // number
+        . '|'
+        . '[\p{L}\p{N}\._]+|\$\{[^\}]+\}' // word (variable reference)
+        . '|'
+        . '"[^"]+"|\'[^\']+\'' // string literal
+        . '|'
+        . '\s+' // space
+    . ')/u';
 
     const ERR_EMPTY = 'nothing found! (endless loop) near: `%s`';
     const ERR_MATCH = 'syntax error near `%s`';
@@ -67,6 +77,10 @@ class Scanner
         '!' => Token::T_NOT,
         'not' => Token::T_NOT,
         ',' => Token::T_COMMA,
+
+        '[' => Token::T_ARRAY_OPEN,
+        ']' => Token::T_ARRAY_CLOSE,
+        '->' => TOKEN::T_PAIR,
 
         '||' =>	Token::T_CONCAT,
     );
@@ -122,13 +136,13 @@ class Scanner
 
                 switch ($tokenType) {
                     case Token::T_PLUS:
-                        if ($prev->type & Token::T_OPERATOR || $prev->type == Token::T_POPEN || $prev->type == Token::T_COMMA) {
+                        if ($prev->type & Token::T_OPERATOR || $prev->type & Token::T_POPEN || $prev->type & Token::T_COMMA) {
                             $tokenType = Token::T_UNARY_PLUS;
                         }
                         break;
 
                     case Token::T_MINUS:
-                        if ($prev->type & Token::T_OPERATOR || $prev->type == Token::T_POPEN || $prev->type == Token::T_COMMA) {
+                        if ($prev->type & Token::T_OPERATOR || $prev->type & Token::T_POPEN || $prev->type & Token::T_COMMA) {
                             $tokenType = Token::T_UNARY_MINUS;
                         }
                         break;

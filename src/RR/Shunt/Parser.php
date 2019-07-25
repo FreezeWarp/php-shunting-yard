@@ -123,6 +123,7 @@ class Parser
                 case Token::T_MOD:
                 case Token::T_POW:
                 case Token::T_NOT:
+                case Token::T_PAIR:
                     // It is known a priori that the operator takes n arguments.
                     $na = $this->argc($t);
 
@@ -146,6 +147,30 @@ class Parser
                     // Push the returned results, if any, back onto the stack.
                     $operationResult = $this->op($t->type, $lhs, $rhs, $ctx);
                     $this->stack[] = Token::auto($operationResult);
+                    break;
+
+                case Token::T_ARRAY_OPEN:
+                    // function
+                    $argc = $t->argc;
+                    $argv = array();
+
+                    $len -= $argc - 1;
+
+                    for (; $argc > 0; --$argc) {
+                        array_unshift($argv, array_pop($this->stack)->value);
+                    }
+
+                    $r = [];
+                    foreach ($argv AS $v) {
+                        if ($v instanceof Pair) {
+                            $r[$v->key] = $v->value;
+                        } else {
+                            $r[] = $v;
+                        }
+                    }
+
+                    // Push the returned results, if any, back onto the stack.
+                    $this->stack[] = Token::auto($r);
                     break;
 
                 case Token::T_FUNCTION:
@@ -179,7 +204,6 @@ class Parser
 
         // If there are more values in the stack
         // (Error) The user input has too many values.
-        var_dump($this->stack);
         throw new RuntimeError('run-time error: too many values in the stack');
     }
 
@@ -213,6 +237,9 @@ class Parser
             }
 
             switch ($op) {
+                case Token::T_PAIR:
+                    return new Pair($lhs, $rhs);
+
                 case Token::T_AND:
                     return $lhs && $rhs;
 
@@ -248,7 +275,11 @@ class Parser
                     return $lhs + $rhs;
 
                 case Token::T_CONCAT:
-                    return $lhs . $rhs;
+                    if (is_array($lhs) || is_array($rhs)) {
+                        return array_merge((array) $lhs, (array) $rhs);
+                    } else {
+                        return $lhs . $rhs;
+                    }
 
                 case Token::T_MINUS:
                     return $lhs - $rhs;
@@ -295,6 +326,7 @@ class Parser
     protected function argc(Token $t)
     {
         switch ($t->type) {
+            case Token::T_PAIR:
             case Token::T_AND:
             case Token::T_OR:
             case Token::T_XOR:
@@ -346,16 +378,19 @@ class Parser
     protected function fargs($fn)
     {
         $argc = $parenthesis = 0;
-        $this->handle($this->scanner->next()); // '('
+
+        if ($fn->type !== Token::T_ARRAY_OPEN) {
+            $this->handle($this->scanner->next()); // '('
+        }
 
         if ($this->scanner->peek()) { // more tokens?
             while ($t = $this->scanner->next()) {
                 $this->handle($t);
 
                 // nested parenthesis inside function calls
-                if ($t->type === Token::T_POPEN) {
+                if ($t->type === ($fn->type === Token::T_ARRAY_OPEN ? Token::T_ARRAY_OPEN : Token::T_POPEN)) {
                     $parenthesis++;
-                } elseif ($t->type === Token::T_PCLOSE && $parenthesis-- === 0) {
+                } elseif ($t->type === ($fn->type === Token::T_ARRAY_OPEN ? Token::T_ARRAY_CLOSE : Token::T_PCLOSE) && $parenthesis-- === 0) {
                     break;
                 }
 
@@ -393,7 +428,7 @@ class Parser
                 $pe = false;
 
                 while ($t = end($this->stack)) {
-                    if ($t->type === Token::T_POPEN) {
+                    if ($t->type === Token::T_POPEN || $t->type === Token::T_ARRAY_OPEN) {
                         $pe = true;
                         break;
                     }
@@ -412,6 +447,7 @@ class Parser
                 break;
 
             // If the token is an operator, op1, then:
+            case Token::T_PAIR:
             case Token::T_CONCAT:
             case Token::T_AND:
             case Token::T_OR:
@@ -445,6 +481,7 @@ class Parser
                         default:
                             break 2;
 
+                        case Token::T_PAIR:
                         case Token::T_CONCAT:
                         case Token::T_AND:
                         case Token::T_OR:
@@ -514,6 +551,34 @@ class Parser
                 }
 
                 $this->state = self::WAITING_FOR_OPERATOR;
+                break;
+
+            case Token::T_ARRAY_OPEN:
+                $this->stack[] = $t;
+                $this->fargs($t);
+                break;
+
+            // If the token is a right array bracket:
+            case Token::T_ARRAY_CLOSE:
+                $pe = false;
+
+                // Until the token at the top of the stack is a left parenthesis,
+                // pop operators off the stack onto the output queue
+                while ($t = array_pop($this->stack)) {
+
+                    $this->queue[] = $t;
+
+                    if ($t->type === Token::T_ARRAY_OPEN) {
+                        $pe = true;
+                        break;
+                    }
+
+                }
+
+                // If the stack runs out without finding a left parenthesis, then there are mismatched parentheses.
+                if ($pe !== true) {
+                    throw new ParseError('parser error: unexpected token `]`');
+                }
                 break;
 
             default:

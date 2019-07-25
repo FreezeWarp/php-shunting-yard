@@ -32,6 +32,8 @@
 
 namespace RR\Shunt;
 
+use RR\Shunt\Exception\SyntaxError;
+
 class Token
 {
     const T_NUMBER          = 1,  // a number (integer / double)
@@ -39,8 +41,11 @@ class Token
           T_NATIVE          = 3,  // a string
           T_FUNCTION        = 4,  // function
           T_POPEN           = 8,  // (
+          T_ARRAY_OPEN      = 9,  // [
           T_PCLOSE          = 16, // )
+          T_ARRAY_CLOSE     = 17, // ]
           T_COMMA           = 32, // ,
+          T_PAIR            = 33,  // an array pair (a -> b)
           T_OPERATOR        = 64, // operator (currently unused)
           T_PLUS            = 65, // +
           T_MINUS           = 66, // -
@@ -51,6 +56,7 @@ class Token
           T_UNARY_PLUS      = 71, // + unsigned number (determined during parsing)
           T_UNARY_MINUS     = 72, // - signed number (determined during parsing)
           T_NOT             = 73, // !
+          T_CONCAT          = 74, // ||
           T_NULL            = 128, // null
           T_GREATER_EQUAL   = 256, // >=
           T_LESS_EQUAL      = 512, // <=
@@ -60,8 +66,7 @@ class Token
           T_NOT_EQUAL       = 8192, // <>
           T_AND             = 16384, // &
           T_OR              = 32768, // |
-          T_XOR             = 65536, // ><
-          T_CONCAT          = 131072; // ||
+          T_XOR             = 65536; // ><
 
     public $type;
     public $value;
