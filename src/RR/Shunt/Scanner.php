@@ -91,6 +91,7 @@ class Scanner
         $prev = new Token(Token::T_OPERATOR, 'noop');
 
         while (trim($input) !== '') {
+
             if (!preg_match(self::PATTERN, $input, $match)) {
                 // syntax error
                 throw new SyntaxError(sprintf(self::ERR_MATCH, substr($input, 0, 10)));
@@ -102,11 +103,22 @@ class Scanner
             }
 
             // Remove the first matched token from the input, for the next iteration
-
             $input = substr($input, strlen($match[1]));
 
             // Get the value of the matched token
             $value = trim($match[1]);
+
+            /*
+             * While a bit... or possibly very... silly, the idea here is that we allow an extending class the ability to easily intercept our scanner at any time, which we do by passing it:
+             * 1.) the current list of tokens
+             * 2.) the value just obtained, which will become its own token
+             * 3.) the remaining input after the value just obtained
+             *
+             * We pass all three by reference, letting an extending class modify them to its liking, hopefully in a memory-efficient way as a bonus.
+             *
+             * In my specific case, I wanted to be able to intercept a -> token that isn't contained by brackets, which I could do by checking to see if the currently parsed tokens includes more opening brackets than closing brackets. If both of these are true, I then modify the value and input to be empty, resulting in the scanner stopping here, returning a value, which I would then use the leftover input I captured to process further.
+             */
+            $this->intercept($this->tokens, $value, $input);
 
             // Ignore whitespace matches
             if ($value === '') {
@@ -194,7 +206,17 @@ class Scanner
                 $this->tokens[] = $prev = new Token($tokenType, $value);
 
             }
+
         }
+
+    }
+
+    /**
+     * This is designed to be overridden, allowing extending classes to intercept tokens as they are being scanned.
+     */
+    protected function intercept(&$tokens, &$value, &$input)
+    {
+        return;
     }
 
     public function reset()
