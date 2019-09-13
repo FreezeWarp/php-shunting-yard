@@ -13,6 +13,7 @@ To this end, the following changes are made:
     
   * Support for array literals has been added.
     * The `||` operator will perform array merging if either operand is an array.
+    * The `in` operator can be used to check the existence of an array member. A `not in` operator still needs to be added.
     * Both lists and associative arrays are implemented. Lists use the syntax `[1, 2, 3]`, while associative arrays use the syntax `[1 -> 2, 3 -> 4, 5 -> 6]`.
     * Array keys and values support all operations otherwise supported by shunting expressions -- for instance, `[1 + 2 -> 3 + 4, 5 + 6 -> 7 + 8]` is equivalent to `[3 -> 7, 11 -> 15]`
 
