@@ -57,6 +57,7 @@ class Token
           T_UNARY_MINUS     = 72, // - signed number (determined during parsing)
           T_NOT             = 73, // !
           T_CONCAT          = 74, // ||
+          T_IN              = 75, // in
           T_NULL            = 128, // null
           T_GREATER_EQUAL   = 256, // >=
           T_LESS_EQUAL      = 512, // <=

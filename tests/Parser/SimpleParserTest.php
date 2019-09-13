@@ -202,6 +202,18 @@ class SimpleParserTest extends \PHPUnit\Framework\TestCase
                 [1, 1, 1]
             ),
             array(
+                '1 in [1, 1, 1]',
+                true
+            ),
+            array(
+                '2 in [1, 1, 1]',
+                false
+            ),
+            array(
+                '1 in [1, 2, 3] and 2 in [1, 2, 3] and 3 in [1, 2, 3] and not (4 in [1, 2, 3])', // TODO: add not in
+                true
+            ),
+            array(
                 '[1, "b", 1 + 1]',
                 [1, "b", 2]
             ),

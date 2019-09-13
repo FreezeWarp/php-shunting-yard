@@ -105,6 +105,7 @@ class Parser
                     break;
 
                 case Token::T_CONCAT:
+                case Token::T_IN:
                 case Token::T_AND:
                 case Token::T_OR:
                 case Token::T_XOR:
@@ -281,6 +282,9 @@ class Parser
                         return $lhs . $rhs;
                     }
 
+                case Token::T_IN:
+                    return in_array($lhs, $rhs);
+
                 case Token::T_MINUS:
                     return $lhs - $rhs;
 
@@ -343,6 +347,7 @@ class Parser
             case Token::T_MOD:
             case Token::T_POW:
             case Token::T_CONCAT:
+            case Token::T_IN:
                 return 2;
         }
 
@@ -449,6 +454,7 @@ class Parser
             // If the token is an operator, op1, then:
             case Token::T_PAIR:
             case Token::T_CONCAT:
+            case Token::T_IN:
             case Token::T_AND:
             case Token::T_OR:
             case Token::T_XOR:
@@ -483,6 +489,7 @@ class Parser
 
                         case Token::T_PAIR:
                         case Token::T_CONCAT:
+                        case Token::T_IN:
                         case Token::T_AND:
                         case Token::T_OR:
                         case Token::T_XOR:
@@ -615,6 +622,7 @@ class Parser
             case Token::T_UNARY_MINUS:
 
             case Token::T_POW:
+            case Token::T_IN:
                 return 2; //rtl
         }
 
@@ -651,6 +659,7 @@ class Parser
 
             case Token::T_EQUAL:
             case Token::T_NOT_EQUAL:
+            case Token::T_IN:
                 return 4;
 
             case Token::T_AND:

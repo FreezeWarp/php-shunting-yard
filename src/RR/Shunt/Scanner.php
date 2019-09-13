@@ -83,6 +83,7 @@ class Scanner
         '->' => TOKEN::T_PAIR,
 
         '||' =>	Token::T_CONCAT,
+        'in' => Token::T_IN
     );
 
     public function __construct($input)
