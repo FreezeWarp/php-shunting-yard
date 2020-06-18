@@ -182,7 +182,7 @@ class Parser
                     $len -= $argc - 1;
 
                     for (; $argc > 0; --$argc) {
-                        array_unshift($argv, array_pop($this->stack)->value);
+                        array_unshift($argv, array_pop($this->stack));
                     }
 
                     // Push the returned results, if any, back onto the stack.

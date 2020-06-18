@@ -5,6 +5,7 @@ namespace tests\Context;
 use RR\Shunt\Context;
 use RR\Shunt\Exception\RuntimeError;
 use Exception;
+use RR\Shunt\Token;
 
 class FunctionDefinitionTest extends \PHPUnit\Framework\TestCase
 {
@@ -16,7 +17,7 @@ class FunctionDefinitionTest extends \PHPUnit\Framework\TestCase
             return $param1;
         });
 
-        $actual = $context->fn('func', array(3));
+        $actual = $context->fn('func', array(Token::auto(3)));
 
         $this->assertEquals(3.0, $actual);
     }
@@ -27,7 +28,7 @@ class FunctionDefinitionTest extends \PHPUnit\Framework\TestCase
 
         $context->def('abs');
 
-        $actual = $context->fn('abs', array(-3));
+        $actual = $context->fn('abs', array(Token::auto(-3)));
 
         $this->assertEquals(3.0, $actual);
     }
@@ -38,7 +39,7 @@ class FunctionDefinitionTest extends \PHPUnit\Framework\TestCase
 
         $context = new Context();
 
-        $context->fn('notdefinedfunction', array(-3));
+        $context->fn('notdefinedfunction', array(Token::auto(-3)));
     }
 
     public function testFunctionDefinitionWithOptionalParams()
@@ -49,11 +50,11 @@ class FunctionDefinitionTest extends \PHPUnit\Framework\TestCase
             return ($param1 + $param2);
         });
 
-        $actual = $context->fn('func', array(3));
+        $actual = $context->fn('func', array(Token::auto(3)));
 
         $this->assertEquals(103.0, $actual);
 
-        $actual = $context->fn('func', array(3, 200));
+        $actual = $context->fn('func', array(Token::auto(3), Token::auto(200)));
 
         $this->assertEquals(203.0, $actual);
     }

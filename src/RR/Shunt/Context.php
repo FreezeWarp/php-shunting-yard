@@ -92,6 +92,8 @@ class Context
             throw new RuntimeError('run-time error: undefined function "' . $name . '"');
         }
 
+        $args = array_map(function(Token $arg) { return $arg->value; }, $args);
+
         return call_user_func_array($this->functions[$name], $args);
     }
 
