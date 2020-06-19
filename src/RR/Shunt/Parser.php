@@ -212,8 +212,8 @@ class Parser
     {
         // If there is a custom operator handler function defined in the context, call it instead
         if ($ctx->hasCustomOperatorHandler($op)) {
-            $lhsValue = is_object($lhs) ? $lhs->value : null;
-            $rhsValue = is_object($rhs) ? $rhs->value : null;
+            $lhsValue = is_object($lhs) ? $lhs : null;
+            $rhsValue = is_object($rhs) ? $rhs : null;
             return $ctx->execCustomOperatorHandler($op, $lhsValue, $rhsValue);
         }
 
