@@ -79,6 +79,18 @@ class Context
 
 
     /**
+     * Update the set of constants used by this context. This is most useful for performance optimizations, since this allows the variables of the context object to change without requiring function redefinition.
+     *
+     * @param $constants
+     * @return $this
+     */
+    public function withConstants($constants) {
+        $this->constants = $constants;
+        return $this;
+    }
+
+
+    /**
      * Call a user-defined custom function and returns the result
      *
      * @param $name The name of the function
