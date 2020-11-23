@@ -44,7 +44,7 @@ class Scanner
         . '|'
         . '[\p{L}\p{N}\._]+|\$\{[^\}]+\}' // word (variable reference)
         . '|'
-        . '"[^"]+"|\'[^\']+\'' // string literal
+        . '"[^"]*"|\'[^\']*\'' // string literal
         . '|'
         . '\s+' // space
     . ')/u';
