@@ -22,6 +22,8 @@ To this end, the following changes are made:
     * A special syntax, `${xyz}` is allotted for more complex variable references -- this supports any character in the variable name other than `}`.
     * Unregistered variables evaluate to 0 instead of causing an exception. A strict mode flag on Context can re-enable the old behaviour.
     
+  * End-of-line comments are supported using #
+    
   * A handful of more opinionated changes were made to make the overall syntax more user-friendly:
     * No default constants are set. At construction time, an array can be passed to set all constants at once.
     * `and`, `or`, and `not` are now synonyms for `&`, `|`, and `!` respectively.

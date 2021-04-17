@@ -47,7 +47,9 @@ class Scanner
         . '"[^"]*"|\'[^\']*\'' // string literal
         . '|'
         . '\s+' // space
-    . ')/u';
+        . '|'
+        . '#.*(\n|$)' // comment
+    . ')/um';
 
     const ERR_EMPTY = 'nothing found! (endless loop) near: `%s`';
     const ERR_MATCH = 'syntax error near `%s`';
@@ -95,7 +97,7 @@ class Scanner
 
             if (!preg_match(self::PATTERN, $input, $match)) {
                 // syntax error
-                throw new SyntaxError(sprintf(self::ERR_MATCH, substr($input, 0, 10)));
+                throw new SyntaxError(sprintf(self::ERR_MATCH, $input));
             }
 
             if (empty($match[1]) && $match[1] !== '0') {
@@ -121,8 +123,8 @@ class Scanner
              */
             $this->intercept($this->tokens, $value, $input);
 
-            // Ignore whitespace matches
-            if ($value === '') {
+            // Ignore whitespace and comment matches
+            if ($value === '' || preg_match('/^#.*$/m', $value)) {
                 continue;
             }
 

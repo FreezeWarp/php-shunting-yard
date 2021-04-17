@@ -90,6 +90,18 @@ class SimpleParserTest extends \PHPUnit\Framework\TestCase
                 "5",
             ),
             array(
+                '"2"+"3"#yo',
+                "5",
+            ),
+            array(
+                '
+                "2" #2
+                + #plus
+                "3" #3
+                ',
+                "5",
+            ),
+            array(
                 '2 || 3',
                 "23",
             ),
@@ -100,6 +112,20 @@ class SimpleParserTest extends \PHPUnit\Framework\TestCase
             array(
                 '"2 "+3',
                 "2 3",
+            ),
+            array(
+                '"2
+                2
+                2"',
+                '2
+                2
+                2'
+            ),
+            array(
+                '"2#2"#2#2
+                 +
+                 "3#3"#444',
+                "2#23#3",
             ),
             array(
                 '"2" || 3',
